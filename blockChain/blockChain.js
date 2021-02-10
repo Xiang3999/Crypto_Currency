@@ -11,7 +11,7 @@ class Transaction{
         this.timestamp = timestamp;
     }
 
-    calculateHash(){
+    cal_Hash(){
         return SHA256(this.clientPubicKey, this.merchantPubicKey, this.amount, this.timestamp).toString();
     }
 
@@ -19,7 +19,7 @@ class Transaction{
         if(signingKey.getPublic('hex') !== this.clientPubicKey){
             throw new Error('Unable to sign the transaction from other wallets!');
         }
-        const hashTx = this.calculateHash();
+        const hashTx = this.cal_Hash();
         const sig = signingKey.sign(hashTx, 'base64');
         this.signature = sig.toDER('hex');
     }
@@ -32,27 +32,27 @@ class Transaction{
         }
 
         const publicKey = ec.keyFromPublic(this.clientPubicKey, 'hex');
-        return publicKey.verify(this.calculateHash(), this.signature);
+        return publicKey.verify(this.cal_Hash(), this.signature);
     }
 }
 
 class Block{
-    constructor(transactions, previouHash = ''){
+    constructor(transactions, preHash = ''){
         this.transactions = transactions;
-        this.previouHash = previouHash;
-        this.hash = this.calculateHash();
+        this.preHash = preHash;
+        this.hash = this.cal_Hash();
         this.nonce = 0;
     }
 
-    calculateHash(){
-        return SHA256(this.previouHash + this.nonce + this.index + this.timestamp + JSON.stringify(this.transactions)).toString();
+    cal_Hash(){
+        return SHA256(this.preHash + this.nonce + this.index + this.timestamp + JSON.stringify(this.transactions)).toString();
 
     }
 
     mineBlock(difficulty){
         while(this.hash.substring(0, difficulty) !== Array(difficulty +1).join("0")){
             this.nonce++;
-            this.hash = this.calculateHash();
+            this.hash = this.cal_Hash();
         }
 
         console.log("Block mined: " + this.hash);
@@ -71,7 +71,7 @@ class Block{
 class Blockchain{
     constructor(){
         this.chain = [this.createGenesisBlock()];
-        this.difficulty = 10;
+        this.difficulty = 3;
         this.pendingTransactions = [];
         this.miningReward = 100;
     }
@@ -135,11 +135,11 @@ class Blockchain{
                 return false;
             }
 
-            if(currentBlock.hash !== currentBlock.calculateHash()){
+            if(currentBlock.hash !== currentBlock.cal_Hash()){
                 return false;
             }
 
-            if(currentBlock.previouHash !== previousBlock.hash){
+            if(currentBlock.preHash !== previousBlock.hash){
                 return false;
             }
         }
